@@ -2,7 +2,7 @@
 
 namespace Aatis\Routing\Controller;
 
-use Psr\Container\ContainerInterface;
+use Aatis\DependencyInjection\Interface\ContainerInterface;
 
 abstract class AbstractController
 {

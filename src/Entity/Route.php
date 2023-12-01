@@ -2,8 +2,6 @@
 
 namespace Aatis\Routing\Entity;
 
-use Attribute;
-
 #[\Attribute]
 class Route
 {

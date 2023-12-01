@@ -36,8 +36,6 @@ class Router
             $namespace = $route->getController();
             if (!$namespace) {
                 throw new NoValidRouteException('This route isn\'t linked to a controller');
-
-                return;
             }
 
             $controller = $this->container->get($namespace);

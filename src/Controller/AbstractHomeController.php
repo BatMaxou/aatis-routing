@@ -2,8 +2,8 @@
 
 namespace Aatis\Routing\Controller;
 
-use Psr\Container\ContainerInterface;
 use Aatis\Routing\Interface\HomeControllerInterface;
+use Aatis\DependencyInjection\Interface\ContainerInterface;
 
 abstract class AbstractHomeController extends AbstractController implements HomeControllerInterface
 {
@@ -14,6 +14,6 @@ abstract class AbstractHomeController extends AbstractController implements Home
 
     public function home(): void
     {
-        require_once $_ENV['DOCUMENT_ROOT'] . '/../views/pages/home.php';
+        require_once $_ENV['DOCUMENT_ROOT'].'/../views/pages/home.php';
     }
 }

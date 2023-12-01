@@ -14,8 +14,7 @@
         }
     },
     "require": {
-        "psr/container": "^2.0",
-        "aatis/dependency-injection": "^1.2"
+        "aatis/dependency-injection": "^1.3"
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^3.40",
