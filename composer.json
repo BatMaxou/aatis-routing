@@ -14,5 +14,10 @@
         }
     },
     "require": {
+        "aatis/dependency-injection": "^1.3"
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3.40",
+        "phpstan/phpstan": "^1.10"
     }
 }

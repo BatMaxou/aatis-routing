@@ -1,8 +1,8 @@
 <?php
 
-namespace Aatis\Core\Exception;
+namespace Aatis\Routing\Exception;
 
-use Aatis\Core\Interface\RouterExceptionInterface;
+use Aatis\Routing\Interface\Exception\RouterExceptionInterface;
 
 class NoValidRouteException extends \Exception implements RouterExceptionInterface
 {

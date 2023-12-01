@@ -1,8 +1,6 @@
 <?php
 
-namespace Aatis\Core\Entity;
-
-use Attribute;
+namespace Aatis\Routing\Entity;
 
 #[\Attribute]
 class Route

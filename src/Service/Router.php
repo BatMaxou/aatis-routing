@@ -1,11 +1,11 @@
 <?php
 
-namespace Aatis\Core\Service;
+namespace Aatis\Routing\Service;
 
-use Aatis\Core\Entity\Route;
-use Aatis\Core\Exception\NoValidRouteException;
-use Aatis\Core\Interface\HomeControllerInterface;
-use Aatis\DependencyInjection\Entity\Container;
+use Aatis\Routing\Entity\Route;
+use Aatis\Routing\Exception\NoValidRouteException;
+use Aatis\Routing\Interface\HomeControllerInterface;
+use Aatis\DependencyInjection\Interface\ContainerInterface;
 
 class Router
 {
@@ -15,7 +15,7 @@ class Router
     private array $routes = [];
 
     public function __construct(
-        private readonly Container $container,
+        private readonly ContainerInterface $container,
         private readonly HomeControllerInterface $baseHomeController
     ) {
         $controllerServices = $this->container->getByTag('controller');
@@ -36,8 +36,6 @@ class Router
             $namespace = $route->getController();
             if (!$namespace) {
                 throw new NoValidRouteException('This route isn\'t linked to a controller');
-
-                return;
             }
 
             $controller = $this->container->get($namespace);

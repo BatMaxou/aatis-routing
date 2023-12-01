@@ -1,6 +1,6 @@
 <?php
 
-namespace Aatis\Core\Interface;
+namespace Aatis\Routing\Interface\Exception;
 
 interface RouterExceptionInterface extends \Throwable
 {
