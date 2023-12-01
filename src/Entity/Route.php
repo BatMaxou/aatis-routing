@@ -2,7 +2,7 @@
 
 namespace Aatis\Routing\Entity;
 
-#[\Attribute]
+#[\Attribute(\Attribute::TARGET_METHOD)]
 class Route
 {
     /**
