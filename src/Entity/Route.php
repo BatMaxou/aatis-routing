@@ -1,6 +1,6 @@
 <?php
 
-namespace Aatis\Core\Entity;
+namespace Aatis\Routing\Entity;
 
 use Attribute;
 

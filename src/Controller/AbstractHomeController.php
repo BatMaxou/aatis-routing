@@ -1,13 +1,13 @@
 <?php
 
-namespace Aatis\Core\Controller;
+namespace Aatis\Routing\Controller;
 
-use Aatis\Core\Interface\HomeControllerInterface;
-use Aatis\DependencyInjection\Entity\Container;
+use Psr\Container\ContainerInterface;
+use Aatis\Routing\Interface\HomeControllerInterface;
 
 abstract class AbstractHomeController extends AbstractController implements HomeControllerInterface
 {
-    public function __construct(Container $container)
+    public function __construct(ContainerInterface $container)
     {
         $this->container = $container;
     }
