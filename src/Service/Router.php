@@ -3,7 +3,7 @@
 namespace Aatis\Routing\Service;
 
 use Aatis\Routing\Entity\Route;
-use Aatis\Routing\Exception\NoValidRouteException;
+use Aatis\Routing\Exception\NotValidRouteException;
 use Aatis\Routing\Interface\HomeControllerInterface;
 use Aatis\DependencyInjection\Interface\ContainerInterface;
 
@@ -35,17 +35,37 @@ class Router
 
             $namespace = $route->getController();
             if (!$namespace) {
-                throw new NoValidRouteException('This route isn\'t linked to a controller');
+                throw new NotValidRouteException(sprintf('The route %s isn\'t linked to a controller', $route->getPath()));
             }
 
             $controller = $this->container->get($namespace);
             $controller->{$route->getMethodName()}(...$params);
-        } elseif (empty($this->routes)) {
-            $this->baseHomeController->home();
-        } else {
-            header('HTTP/1.0 404 Not Found');
-            require_once $_ENV['DOCUMENT_ROOT'] . '/../views/errors/404.php';
+
+            return;
         }
+
+        if (empty($this->routes)) {
+            $this->baseHomeController->home();
+
+            return;
+        }
+
+        if (isset($explodedUri[1]) && '' === $explodedUri[1]) {
+            $path = array_reduce(
+                $this->routes,
+                fn ($carry, $route) => $this->baseHomeController::class === $route->getController()
+                    && 'home' === $route->getMethodName() ? $route->getPath() : $carry,
+                null
+            );
+
+            if ($path) {
+                header('Location: '.$path);
+                exit;
+            }
+        }
+
+        header('HTTP/1.0 404 Not Found');
+        require_once $_ENV['DOCUMENT_ROOT'].'/../views/errors/404.php';
     }
 
     /**
@@ -78,7 +98,19 @@ class Router
             }
 
             foreach ($attributes as $attribute) {
-                $this->routes[] = (new Route(...$attribute->getArguments()))
+                $args = $attribute->getArguments();
+
+                if (empty($args)) {
+                    throw new NotValidRouteException(sprintf('The function %s of %s controller isn\'t linked to a route', $method->getName(), $controller));
+                }
+
+                foreach ($this->routes as $route) {
+                    if ($route->getPath() === $args[0]) {
+                        throw new NotValidRouteException(sprintf('The path %s is already used for function %s of %s controller', $args[0], $route->getMethodName(), $route->getController()));
+                    }
+                }
+
+                $this->routes[] = (new Route(...$args))
                     ->setController($controller)
                     ->setMethodName($method->getName())
                     ->setMethodParams($params);
