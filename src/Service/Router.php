@@ -40,12 +40,34 @@ class Router
 
             $controller = $this->container->get($namespace);
             $controller->{$route->getMethodName()}(...$params);
-        } elseif (empty($this->routes)) {
-            $this->baseHomeController->home();
-        } else {
-            header('HTTP/1.0 404 Not Found');
-            require_once $_ENV['DOCUMENT_ROOT'].'/../views/errors/404.php';
+
+            return;
         }
+
+        if (empty($this->routes)) {
+            $this->baseHomeController->home();
+
+            return;
+        }
+
+        if (isset($explodedUri[1]) && '' === $explodedUri[1]) {
+            $path = array_reduce(
+                $this->routes,
+                fn ($carry, $route) =>
+                $this->baseHomeController::class === $route->getController()
+                    && 'home' === $route->getMethodName() ? $route->getPath() : $carry,
+                null
+            );
+
+            if ($path) {
+                header('Location: ' . $path);
+                exit;
+                return;
+            }
+        }
+
+        header('HTTP/1.0 404 Not Found');
+        require_once $_ENV['DOCUMENT_ROOT'] . '/../views/errors/404.php';
     }
 
     /**
@@ -90,7 +112,7 @@ class Router
                     }
                 }
 
-                $this->routes[] = (new Route(...$attribute->getArguments()))
+                $this->routes[] = (new Route(...$args))
                     ->setController($controller)
                     ->setMethodName($method->getName())
                     ->setMethodParams($params);
