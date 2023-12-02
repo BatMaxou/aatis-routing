@@ -2,8 +2,8 @@
 
 namespace Aatis\Routing\Exception;
 
-use Aatis\Routing\Interface\Exception\RouterExceptionInterface;
+use Aatis\Routing\Exception\RouterException;
 
-class NotValidRouteException extends \Exception implements RouterExceptionInterface
+class NotValidRouteException extends RouterException
 {
 }
