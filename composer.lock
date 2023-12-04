@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "4dc9ae989b45c560fefd56b41adfb32b",
+    "content-hash": "ce2ec04fbf6b6b5737be257adf0234d6",
     "packages": [
         {
             "name": "aatis/dependency-injection",
-            "version": "1.3.0",
+            "version": "1.4.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/BatMaxou/aatis-DI.git",
-                "reference": "63cd28a84e64abe9615347ba2a85b94c7a7f3099"
+                "reference": "ce15b25a2ffa110fa5ee03b517c394f7a3bfd790"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/BatMaxou/aatis-DI/zipball/63cd28a84e64abe9615347ba2a85b94c7a7f3099",
-                "reference": "63cd28a84e64abe9615347ba2a85b94c7a7f3099",
+                "url": "https://api.github.com/repos/BatMaxou/aatis-DI/zipball/ce15b25a2ffa110fa5ee03b517c394f7a3bfd790",
+                "reference": "ce15b25a2ffa110fa5ee03b517c394f7a3bfd790",
                 "shasum": ""
             },
             "require": {
@@ -40,9 +40,43 @@
             "description": "Dependency Injection of Aatis",
             "support": {
                 "issues": "https://github.com/BatMaxou/aatis-DI/issues",
-                "source": "https://github.com/BatMaxou/aatis-DI/tree/1.3.0"
+                "source": "https://github.com/BatMaxou/aatis-DI/tree/1.4.2"
             },
-            "time": "2023-12-01T10:37:07+00:00"
+            "time": "2023-12-04T19:41:23+00:00"
+        },
+        {
+            "name": "aatis/template-renderer",
+            "version": "0.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/BatMaxou/aatis-TR.git",
+                "reference": "58d3d34ed1ade2c5e6f3cfb28f0894a59ca0ad4f"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/BatMaxou/aatis-TR/zipball/58d3d34ed1ade2c5e6f3cfb28f0894a59ca0ad4f",
+                "reference": "58d3d34ed1ade2c5e6f3cfb28f0894a59ca0ad4f",
+                "shasum": ""
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Aatis\\TemplateRenderer\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "authors": [
+                {
+                    "name": "Maxime Batista",
+                    "email": "maximebatista.lycee@gmail.com"
+                }
+            ],
+            "description": "Template renderer of Aatis",
+            "support": {
+                "issues": "https://github.com/BatMaxou/aatis-TR/issues",
+                "source": "https://github.com/BatMaxou/aatis-TR/tree/0.0.0"
+            },
+            "time": "2023-12-04T23:01:45+00:00"
         },
         {
             "name": "psr/container",
@@ -360,5 +394,5 @@
     "prefer-lowest": false,
     "platform": [],
     "platform-dev": [],
-    "plugin-api-version": "2.3.0"
+    "plugin-api-version": "2.6.0"
 }
