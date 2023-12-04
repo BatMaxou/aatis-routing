@@ -6,6 +6,7 @@ use Aatis\Routing\Entity\Route;
 use Aatis\Routing\Exception\NotValidRouteException;
 use Aatis\Routing\Interface\HomeControllerInterface;
 use Aatis\DependencyInjection\Interface\ContainerInterface;
+use Aatis\TemplateRenderer\Interface\TemplateRendererInterface;
 
 class Router
 {
@@ -16,7 +17,8 @@ class Router
 
     public function __construct(
         private readonly ContainerInterface $container,
-        private readonly HomeControllerInterface $baseHomeController
+        private readonly HomeControllerInterface $baseHomeController,
+        private readonly TemplateRendererInterface $templateRenderer,
     ) {
         $controllerServices = $this->container->getByTag('controller');
         foreach ($controllerServices as $controllerService) {
@@ -65,7 +67,10 @@ class Router
         }
 
         header('HTTP/1.0 404 Not Found');
-        require_once $_ENV['DOCUMENT_ROOT'].'/../views/errors/404.php';
+        $this->templateRenderer->render('/errors/error.tpl.php', [
+            'code' => '404',
+            'message' => 'Page not found',
+        ]);
     }
 
     /**
