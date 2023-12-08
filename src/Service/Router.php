@@ -15,10 +15,15 @@ class Router
      */
     private array $routes = [];
 
+    /**
+     * @param array<string, mixed> $notFoundErrorVars
+     */
     public function __construct(
         private readonly ContainerInterface $container,
         private readonly HomeControllerInterface $baseHomeController,
         private readonly TemplateRendererInterface $templateRenderer,
+        private readonly string $notFoundErrorTemplate = '/errors/error.tpl.php',
+        private readonly array $notFoundErrorVars = []
     ) {
         $controllerServices = $this->container->getByTag('controller');
         foreach ($controllerServices as $controllerService) {
@@ -67,10 +72,7 @@ class Router
         }
 
         header('HTTP/1.0 404 Not Found');
-        $this->templateRenderer->render('/errors/error.tpl.php', [
-            'code' => '404',
-            'message' => 'Page not found',
-        ]);
+        $this->templateRenderer->render($this->notFoundErrorTemplate, $this->notFoundErrorVars);
     }
 
     /**
