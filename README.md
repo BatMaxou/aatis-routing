@@ -36,7 +36,7 @@ Aatis\Routing\Service\Router:
 
 ### Controller
 
-Each controller must extends the abstract class **AbstractController**
+Each controller must extends the abstract class **AbstractController**.
 
 ```php
 class AatisController extends AbstractController
@@ -45,9 +45,24 @@ class AatisController extends AbstractController
 }
 ```
 
+The **AbstractController** class provide a method **render** thats allows you to render a template.
+
+```php
+class AatisController extends AbstractController
+{
+    public function hello(): void
+    {
+        $this->render('template/path', [
+            'template_var1' => 'Hello',
+            'template_var2' => 'World !'
+        ]);
+    }
+}
+```
+
 ### Home Controller
 
-In your application, you may have a home controller which extends the abstract class **AbstractHomeController**
+In your application, you may have a home controller which extends the abstract class **AbstractHomeController**.
 
 ```php
 class AatisHomeController extends AbstractHomeController
@@ -88,5 +103,3 @@ public function hello(string $name, int $age): void
     // ...
 }
 ```
-
-### TODO
