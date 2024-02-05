@@ -10,7 +10,7 @@ composer require aatis/routing
 
 ### Requirements
 
-First, add the router into your container.
+First, add the router into your container config.
 
 ```yaml
 # config/services.yaml
@@ -26,7 +26,7 @@ Aatis\Routing\Service\Router:
     arguments:
         baseHomeController: 'Path\To\Your\HomeController',
         templateRenderer: 'Path\To\Your\TemplateRenderer',
-        notFoundErrorTemplate: 'Path\To\Your\NotFoundErrorTemplate',
+        notFoundErrorTemplate: 'path/template.tpl',
         notFoundErrorVars:
             template_var1: 404
             template_var2: "Page not found !"
@@ -36,7 +36,7 @@ Aatis\Routing\Service\Router:
 
 ### Controller
 
-Each controller must extends the abstract class **AbstractController**.
+Each controller must extends the abstract class `AbstractController`.
 
 ```php
 class AatisController extends AbstractController
@@ -45,7 +45,7 @@ class AatisController extends AbstractController
 }
 ```
 
-The **AbstractController** class provide a method **render** thats allows you to render a template.
+The `AbstractController` class provide a method `render` thats allows you to render a template.
 
 ```php
 class AatisController extends AbstractController
@@ -62,7 +62,7 @@ class AatisController extends AbstractController
 
 ### Home Controller
 
-In your application, you may have a home controller which extends the abstract class **AbstractHomeController**.
+In your application, you must have a home controller which extends the abstract class `AbstractHomeController`.
 
 ```php
 class AatisHomeController extends AbstractHomeController
@@ -74,7 +74,7 @@ class AatisHomeController extends AbstractHomeController
 }
 ```
 
-*For the home method, **Route** attibutes are not required*
+*For the home method, `Route` attibutes are not required*
 
 ### Routes
 
@@ -88,9 +88,9 @@ public function hello(): void
 }
 ```
 
-*You can give multiple **Route** to a same controller function*
+*You can give multiple `Route` to a same controller function*
 
-*You can't give the same **Route** to multiple controller functions*
+*You can't give the same `Route` to multiple controller functions*
 
 ### Routes with parameters
 
