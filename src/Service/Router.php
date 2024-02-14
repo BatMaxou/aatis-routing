@@ -3,6 +3,7 @@
 namespace Aatis\Routing\Service;
 
 use Aatis\Routing\Entity\Route;
+use Aatis\DependencyInjection\Entity\Service;
 use Aatis\Routing\Exception\NotValidRouteException;
 use Aatis\Routing\Interface\HomeControllerInterface;
 use Aatis\DependencyInjection\Interface\ContainerInterface;
@@ -25,7 +26,8 @@ class Router
         private readonly string $notFoundErrorTemplate = '/errors/error.tpl.php',
         private readonly array $notFoundErrorVars = []
     ) {
-        $controllerServices = $this->container->getByTag('controller');
+        /** @var Service[] */
+        $controllerServices = $this->container->getByTag('controller', true);
         foreach ($controllerServices as $controllerService) {
             $this->extractRoutes($controllerService->getClass());
         }
