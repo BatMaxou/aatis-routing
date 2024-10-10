@@ -2,12 +2,16 @@
 
 namespace Aatis\Routing\Service;
 
-use Aatis\Routing\Entity\Route;
+use Aatis\Routing\Attribute\Route;
+use Aatis\HttpFoundation\Component\Request;
+use Aatis\HttpFoundation\Component\Response;
 use Aatis\DependencyInjection\Entity\Service;
+use Aatis\Routing\Controller\AatisController;
 use Aatis\Routing\Exception\NotValidRouteException;
-use Aatis\Routing\Interface\HomeControllerInterface;
+use Aatis\Routing\Exception\NotAllowedMethodException;
 use Aatis\DependencyInjection\Interface\ContainerInterface;
 use Aatis\TemplateRenderer\Interface\TemplateRendererInterface;
+use LogicException;
 
 class Router
 {
@@ -21,7 +25,7 @@ class Router
      */
     public function __construct(
         private readonly ContainerInterface $container,
-        private readonly HomeControllerInterface $baseHomeController,
+        private readonly AatisController $baseController,
         private readonly TemplateRendererInterface $templateRenderer,
         private readonly string $notFoundErrorTemplate = '/errors/error.tpl.php',
         private readonly array $notFoundErrorVars = []
@@ -33,13 +37,29 @@ class Router
         }
     }
 
-    public function redirect(): void
+    public function redirect(Request $request): Response
     {
-        $explodedUri = $this->explodeUri($_SERVER['REQUEST_URI']);
+        $requestUri = $request->server->get('REQUEST_URI');
+
+        if (!is_string($requestUri)) {
+            throw new NotValidRouteException('The request URI is not a string');
+        }
+
+        $explodedUri = $this->explodeUri($requestUri);
         $routeInfos = $this->findRoute($explodedUri);
 
         if ($routeInfos) {
             $route = $routeInfos['route'];
+            $httpMethod = $request->server->get('REQUEST_METHOD');
+
+            if (!is_string($httpMethod)) {
+                throw new LogicException('The request method is not defined');
+            }
+
+            if (!empty($route->gethttpMethodsAllowed()) && !in_array($httpMethod, $route->gethttpMethodsAllowed())) {
+                throw new NotAllowedMethodException(sprintf('The method %s is not allowed for the route %s', $httpMethod, $route->getPath()));
+            }
+
             $params = $routeInfos['params'];
 
             $namespace = $route->getController();
@@ -48,33 +68,15 @@ class Router
             }
 
             $controller = $this->container->get($namespace);
-            $controller->{$route->getMethodName()}(...$params);
 
-            return;
-        }
-
-        if (empty($this->routes)) {
-            $this->baseHomeController->home();
-
-            return;
+            return $controller->{$route->getMethodName()}(...$params);
         }
 
         if (isset($explodedUri[1]) && '' === $explodedUri[1]) {
-            $path = array_reduce(
-                $this->routes,
-                fn ($carry, $route) => $this->baseHomeController::class === $route->getController()
-                    && 'home' === $route->getMethodName() ? $route->getPath() : $carry,
-                null
-            );
-
-            if ($path) {
-                header('Location: '.$path);
-                exit;
-            }
+            return $this->baseController->home();
         }
 
-        header('HTTP/1.0 404 Not Found');
-        $this->templateRenderer->render($this->notFoundErrorTemplate, $this->notFoundErrorVars);
+        return new Response($this->templateRenderer->render($this->notFoundErrorTemplate, $this->notFoundErrorVars), 404);
     }
 
     /**
@@ -93,17 +95,7 @@ class Router
 
             $params = $method->getParameters();
             if (!empty($params)) {
-                $params = array_reduce($params, function ($carry, $param) {
-                    /**
-                     * @var \ReflectionNamedType|null $type
-                     */
-                    $type = $param->getType();
-                    if ($type) {
-                        $carry[$param->getName()] = $type->getName();
-                    }
-
-                    return $carry;
-                }, []);
+                $params = array_reduce($params, $this->addRouteParameter(...), []);
             }
 
             foreach ($attributes as $attribute) {
@@ -184,5 +176,23 @@ class Router
             'route' => $foundedRoute,
             'params' => $params,
         ] : null;
+    }
+
+    /**
+     * @param array<string, string> $parameters
+     *
+     * @return array<string, string>
+     */
+    private function addRouteParameter(array $parameters, \ReflectionParameter $parameter): array
+    {
+        /**
+         * @var \ReflectionNamedType|null $type
+         */
+        $type = $parameter->getType();
+        if ($type) {
+            $parameters[$parameter->getName()] = $type->getName();
+        }
+
+        return $parameters;
     }
 }

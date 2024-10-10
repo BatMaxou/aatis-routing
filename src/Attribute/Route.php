@@ -1,6 +1,6 @@
 <?php
 
-namespace Aatis\Routing\Entity;
+namespace Aatis\Routing\Attribute;
 
 #[\Attribute(\Attribute::TARGET_METHOD)]
 class Route
@@ -18,9 +18,9 @@ class Route
     private array $methodParams = [];
 
     /**
-     * @param string[] $methods
+     * @param string[] $httpMethodsAllowed
      */
-    public function __construct(private string $path, private array $methods = [])
+    public function __construct(private string $path, private array $httpMethodsAllowed = [])
     {
     }
 
@@ -32,9 +32,9 @@ class Route
     /**
      * @return string[]
      */
-    public function getMethods(): array
+    public function gethttpMethodsAllowed(): array
     {
-        return $this->methods;
+        return $this->httpMethodsAllowed;
     }
 
     /**

@@ -10,7 +10,7 @@
 <body>
     <main>
         <h1>Welcome to your site !</h1>
-        <h2>Want to start ? Let's go create your first controller.</h2>
+        <h2>Want to start ? Let's create your first controller.</h2>
     </main>
 </body>
 

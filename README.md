@@ -25,14 +25,13 @@ You can give to this router multiple arguments
 Aatis\Routing\Service\Router:
     arguments:
         baseHomeController: 'Path\To\Your\HomeController',
-        templateRenderer: 'Path\To\Your\TemplateRenderer',
         notFoundErrorTemplate: 'path/template.tpl',
         notFoundErrorVars:
             template_var1: 404
             template_var2: "Page not found !"
 ```
 
-*notFoundErrorTemplate (default: /errors/error.tpl.php) and notFoundErrorVars (default: []) are optional*
+_notFoundErrorTemplate (default: /errors/error.tpl.php) and notFoundErrorVars (default: []) are optional_
 
 ### Controller
 
@@ -74,7 +73,7 @@ class AatisHomeController extends AbstractHomeController
 }
 ```
 
-*For the home method, `Route` attibutes are not required*
+_For the home method, `Route` attibutes are not required_
 
 ### Routes
 
@@ -88,9 +87,9 @@ public function hello(): void
 }
 ```
 
-*You can give multiple `Route` to a same controller function*
+_You can give multiple `Route` to a same controller function_
 
-*You can't give the same `Route` to multiple controller functions*
+_You can't give the same `Route` to multiple controller functions_
 
 ### Routes with parameters
 
