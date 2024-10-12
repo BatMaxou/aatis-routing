@@ -8,10 +8,11 @@ use Aatis\HttpFoundation\Component\Response;
 use Aatis\DependencyInjection\Entity\Service;
 use Aatis\Routing\Controller\AatisController;
 use Aatis\Routing\Exception\NotValidRouteException;
+use Aatis\Routing\Exception\InvalidArgumentException;
 use Aatis\Routing\Exception\NotAllowedMethodException;
+use Aatis\DependencyInjection\Service\ServiceInstanciator;
 use Aatis\DependencyInjection\Interface\ContainerInterface;
 use Aatis\TemplateRenderer\Interface\TemplateRendererInterface;
-use LogicException;
 
 class Router
 {
@@ -53,7 +54,7 @@ class Router
             $httpMethod = $request->server->get('REQUEST_METHOD');
 
             if (!is_string($httpMethod)) {
-                throw new LogicException('The request method is not defined');
+                throw new \LogicException('The request method is not defined');
             }
 
             if (!empty($route->gethttpMethodsAllowed()) && !in_array($httpMethod, $route->gethttpMethodsAllowed())) {
@@ -68,6 +69,41 @@ class Router
             }
 
             $controller = $this->container->get($namespace);
+
+            $params = [];
+            foreach ($route->getMethodParams() as $key => $type) {
+                if (isset($routeInfos['params'][$key])) {
+                    $params[] = $routeInfos['params'][$key];
+
+                    continue;
+                }
+
+                if (Request::class === $type) {
+                    $params[] = $request;
+
+                    continue;
+                }
+
+                if (str_starts_with($key, '_')) {
+                    $params[] = $this->container->get(sprintf('APP%s', strtoupper($key)));
+
+                    continue;
+                }
+
+                if (interface_exists($type)) {
+                    /** @var Service[] */
+                    $services = $this->container->getByInterface($type, true);
+                    $params[] = $this->chooseService($services);
+
+                    continue;
+                }
+
+                try {
+                    $params[] = $this->container->get($type);
+                } catch (\Exception) {
+                    throw new InvalidArgumentException(sprintf('The parameter %s of the function %s of %s controller is are not provided or can\'t be autowired', $key, $route->getMethodName(), $route->getController()));
+                }
+            }
 
             return $controller->{$route->getMethodName()}(...$params);
         }
@@ -194,5 +230,30 @@ class Router
         }
 
         return $parameters;
+    }
+
+    /**
+     * @param Service[] $services
+     */
+    private function chooseService(array $services): object
+    {
+        $i = 0;
+        $choosenService = null;
+
+        while ($i < count($services) && !$choosenService) {
+            if ($instance = $services[$i]->getInstance()) {
+                $choosenService = $instance;
+            }
+            ++$i;
+        }
+
+        if ($choosenService) {
+            return $choosenService;
+        }
+
+        /** @var ServiceInstanciator */
+        $serviceInstanciator = $this->container->get(ServiceInstanciator::class);
+
+        return $serviceInstanciator->instanciate($services[0]);
     }
 }
