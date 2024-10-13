@@ -112,7 +112,11 @@ class Router
             return $this->baseController->home();
         }
 
-        return new Response($this->templateRenderer->render($this->notFoundErrorTemplate, $this->notFoundErrorVars), 404);
+        try {
+            return new Response($this->templateRenderer->render($this->notFoundErrorTemplate, $this->notFoundErrorVars), 404);
+        } catch (\Exception) {
+            return new Response($this->templateRenderer->render('notFound.tpl.php', ['overrideLocation' => '../vendor/aatis/routing/templates']), 404);
+        }
     }
 
     /**
