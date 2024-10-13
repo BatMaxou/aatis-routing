@@ -1,4 +1,3 @@
-- ReadMe
 - faire jolie page d'accueil
 - faire jolie page 404 en accord avec la page d'accueil
 
