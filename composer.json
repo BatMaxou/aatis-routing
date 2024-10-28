@@ -1,20 +1,22 @@
 {
-    "name": "aatis/routing",
-    "type": "library",
-    "description": "Routing system of Aatis",
-    "authors": [
-        {
-            "name": "Maxime Batista",
-            "email": "maximebatista.lycee@gmail.com"
-        }
-    ],
-    "autoload": {
-        "psr-4": {
-            "Aatis\\Routing\\": "src/"
-        }
-    },
-    "require": {
-        "aatis/dependency-injection": "^1.5",
-        "aatis/template-renderer": "^1.1"
+  "name": "aatis/routing",
+  "type": "library",
+  "description": "Routing system of Aatis",
+  "authors": [
+    {
+      "name": "Maxime Batista",
+      "email": "maximebatista.lycee@gmail.com"
     }
+  ],
+  "autoload": {
+    "psr-4": {
+      "Aatis\\Routing\\": "src/"
+    }
+  },
+  "require": {
+    "php": ">=8.2",
+    "aatis/dependency-injection": "^1.5",
+    "aatis/template-renderer": "^1.2",
+    "aatis/http-foundation": "^1.0"
+  }
 }

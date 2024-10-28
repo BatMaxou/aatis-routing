@@ -2,6 +2,7 @@
 
 namespace Aatis\Routing\Controller;
 
+use Aatis\HttpFoundation\Component\Response;
 use Aatis\DependencyInjection\Interface\ContainerInterface;
 use Aatis\TemplateRenderer\Interface\TemplateRendererInterface;
 
@@ -14,10 +15,10 @@ abstract class AbstractController
     }
 
     /**
-     * @param array<string, mixed> $data
+     * @param array<string, mixed> $vars
      */
-    protected function render(string $template, array $data = []): void
+    protected function render(string $template, array $vars = []): Response
     {
-        $this->templateRenderer->render($template, $data);
+        return new Response($this->templateRenderer->render($template, $vars));
     }
 }
