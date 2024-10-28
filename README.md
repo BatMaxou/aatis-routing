@@ -160,3 +160,29 @@ public function hello(): void
 
 > [!NOTE]
 > The method parameter is optional and set to empty by default
+
+### RequestStack
+
+To store the current `Request`, it is possible to put it into the `RequestStack` service.
+
+```php
+$request = Request::createFromGlobals();
+$requestStack = new RequestStack();
+
+$requestStack->push($request);
+```
+
+With the `RequestStack`, the current `Request` is accessible from any service :
+
+```php
+class MyService
+{
+    public function __construct(RequestStack $requestStack)
+    {
+        $this->request = $requestStack->getCurrentRequest();
+    }
+}
+```
+
+> [!CAUTION]
+> The use of the `RequestStack` is **not recommended**.

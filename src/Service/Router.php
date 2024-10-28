@@ -28,8 +28,9 @@ class Router
         private readonly ContainerInterface $container,
         private readonly AatisController $baseController,
         private readonly TemplateRendererInterface $templateRenderer,
+        private readonly RequestStack $requestStack,
         private readonly string $notFoundErrorTemplate = '/errors/error.tpl.php',
-        private readonly array $notFoundErrorVars = []
+        private readonly array $notFoundErrorVars = [],
     ) {
         /** @var Service[] */
         $controllerServices = $this->container->getByTag('controller', true);
@@ -41,10 +42,16 @@ class Router
     public function redirect(Request $request): Response
     {
         $requestUri = $request->server->get('REQUEST_URI');
-
         if (!is_string($requestUri)) {
             throw new NotValidRouteException('The request URI is not a string');
         }
+
+        $httpMethod = $request->server->get('REQUEST_METHOD');
+        if (!is_string($httpMethod)) {
+            throw new \LogicException('The request method is not defined');
+        }
+
+        $this->requestStack->push($request);
 
         $explodedUri = $this->explodeUri($requestUri);
         $routeInfos = $this->findRoute($explodedUri);
