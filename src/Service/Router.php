@@ -2,10 +2,16 @@
 
 namespace Aatis\Routing\Service;
 
-use Aatis\Routing\Entity\Route;
+use Psr\Log\LoggerInterface;
+use Aatis\Routing\Attribute\Route;
+use Aatis\HttpFoundation\Component\Request;
+use Aatis\HttpFoundation\Component\Response;
 use Aatis\DependencyInjection\Entity\Service;
+use Aatis\Routing\Controller\AatisController;
 use Aatis\Routing\Exception\NotValidRouteException;
-use Aatis\Routing\Interface\HomeControllerInterface;
+use Aatis\Routing\Exception\InvalidArgumentException;
+use Aatis\Routing\Exception\NotAllowedMethodException;
+use Aatis\DependencyInjection\Service\ServiceInstanciator;
 use Aatis\DependencyInjection\Interface\ContainerInterface;
 use Aatis\TemplateRenderer\Interface\TemplateRendererInterface;
 
@@ -21,10 +27,12 @@ class Router
      */
     public function __construct(
         private readonly ContainerInterface $container,
-        private readonly HomeControllerInterface $baseHomeController,
+        private readonly AatisController $baseController,
         private readonly TemplateRendererInterface $templateRenderer,
+        private readonly RequestStack $requestStack,
+        private readonly ?LoggerInterface $logger = null,
         private readonly string $notFoundErrorTemplate = '/errors/error.tpl.php',
-        private readonly array $notFoundErrorVars = []
+        private readonly array $notFoundErrorVars = [],
     ) {
         /** @var Service[] */
         $controllerServices = $this->container->getByTag('controller', true);
@@ -33,13 +41,30 @@ class Router
         }
     }
 
-    public function redirect(): void
+    public function redirect(Request $request): Response
     {
-        $explodedUri = $this->explodeUri($_SERVER['REQUEST_URI']);
+        $requestUri = $request->server->get('REQUEST_URI');
+        if (!is_string($requestUri)) {
+            throw new NotValidRouteException('The request URI is not a string');
+        }
+
+        $httpMethod = $request->server->get('REQUEST_METHOD');
+        if (!is_string($httpMethod)) {
+            throw new \LogicException('The request method is not defined');
+        }
+
+        $this->requestStack->push($request);
+
+        $explodedUri = $this->explodeUri($requestUri);
         $routeInfos = $this->findRoute($explodedUri);
 
         if ($routeInfos) {
             $route = $routeInfos['route'];
+
+            if (!empty($route->gethttpMethodsAllowed()) && !in_array($httpMethod, $route->gethttpMethodsAllowed())) {
+                throw new NotAllowedMethodException(sprintf('The method %s is not allowed for the route %s', $httpMethod, $route->getPath()));
+            }
+
             $params = $routeInfos['params'];
 
             $namespace = $route->getController();
@@ -48,33 +73,76 @@ class Router
             }
 
             $controller = $this->container->get($namespace);
-            $controller->{$route->getMethodName()}(...$params);
 
-            return;
-        }
+            $params = [];
+            $loggedParams = [];
+            foreach ($route->getMethodParams() as $key => $type) {
+                if (isset($routeInfos['params'][$key])) {
+                    $value = $routeInfos['params'][$key];
 
-        if (empty($this->routes)) {
-            $this->baseHomeController->home();
+                    $params[] = $value;
+                    if ($this->logger) {
+                        $loggedParams[$key] = $value;
+                    }
 
-            return;
-        }
+                    continue;
+                }
 
-        if (isset($explodedUri[1]) && '' === $explodedUri[1]) {
-            $path = array_reduce(
-                $this->routes,
-                fn ($carry, $route) => $this->baseHomeController::class === $route->getController()
-                    && 'home' === $route->getMethodName() ? $route->getPath() : $carry,
-                null
-            );
+                if (Request::class === $type) {
+                    $params[] = $request;
 
-            if ($path) {
-                header('Location: '.$path);
-                exit;
+                    continue;
+                }
+
+                if (str_starts_with($key, '_')) {
+                    $params[] = $this->container->get(sprintf('APP%s', strtoupper($key)));
+
+                    continue;
+                }
+
+                if (interface_exists($type)) {
+                    /** @var Service[] */
+                    $services = $this->container->getByInterface($type, true);
+                    $params[] = $this->chooseService($services);
+
+                    continue;
+                }
+
+                try {
+                    $params[] = $this->container->get($type);
+                } catch (\Exception) {
+                    throw new InvalidArgumentException(sprintf('The parameter %s of the function %s of %s controller is not provided or can\'t be autowired', $key, $route->getMethodName(), $route->getController()));
+                }
             }
+
+            $response = $controller->{$route->getMethodName()}(...$params);
+
+            $this->logger?->info(sprintf(
+                '%s %s %s %s',
+                $response->getStatusCode(),
+                $httpMethod,
+                $requestUri,
+                empty($loggedParams) ? '' : (json_encode($loggedParams) ?: '{}'),
+            ));
+
+            return $response;
         }
 
-        header('HTTP/1.0 404 Not Found');
-        $this->templateRenderer->render($this->notFoundErrorTemplate, $this->notFoundErrorVars);
+        if (isset($explodedUri[1]) && '' === $explodedUri[1] && 'GET' === $httpMethod) {
+            $response = $this->baseController->home();
+
+            $this->logger?->info(sprintf('%s %s /', $response->getStatusCode(), $httpMethod));
+
+            return $response;
+        }
+
+        $this->logger?->error(sprintf('404 %s %s', $httpMethod, $requestUri));
+
+        try {
+            return new Response($this->templateRenderer->render($this->notFoundErrorTemplate, $this->notFoundErrorVars), 404);
+        } catch (\Exception) {
+            return new Response($this->templateRenderer->render('notFound.tpl.php', ['overrideLocation' => '../vendor/aatis/routing/templates']), 404);
+        }
     }
 
     /**
@@ -93,17 +161,7 @@ class Router
 
             $params = $method->getParameters();
             if (!empty($params)) {
-                $params = array_reduce($params, function ($carry, $param) {
-                    /**
-                     * @var \ReflectionNamedType|null $type
-                     */
-                    $type = $param->getType();
-                    if ($type) {
-                        $carry[$param->getName()] = $type->getName();
-                    }
-
-                    return $carry;
-                }, []);
+                $params = array_reduce($params, $this->addRouteParameter(...), []);
             }
 
             foreach ($attributes as $attribute) {
@@ -184,5 +242,48 @@ class Router
             'route' => $foundedRoute,
             'params' => $params,
         ] : null;
+    }
+
+    /**
+     * @param array<string, string> $parameters
+     *
+     * @return array<string, string>
+     */
+    private function addRouteParameter(array $parameters, \ReflectionParameter $parameter): array
+    {
+        /**
+         * @var \ReflectionNamedType|null $type
+         */
+        $type = $parameter->getType();
+        if ($type) {
+            $parameters[$parameter->getName()] = $type->getName();
+        }
+
+        return $parameters;
+    }
+
+    /**
+     * @param Service[] $services
+     */
+    private function chooseService(array $services): object
+    {
+        $i = 0;
+        $choosenService = null;
+
+        while ($i < count($services) && !$choosenService) {
+            if ($instance = $services[$i]->getInstance()) {
+                $choosenService = $instance;
+            }
+            ++$i;
+        }
+
+        if ($choosenService) {
+            return $choosenService;
+        }
+
+        /** @var ServiceInstanciator */
+        $serviceInstanciator = $this->container->get(ServiceInstanciator::class);
+
+        return $serviceInstanciator->instanciate($services[0]);
     }
 }
