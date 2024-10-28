@@ -2,6 +2,7 @@
 
 namespace Aatis\Routing\Service;
 
+use Psr\Log\LoggerInterface;
 use Aatis\Routing\Attribute\Route;
 use Aatis\HttpFoundation\Component\Request;
 use Aatis\HttpFoundation\Component\Response;
@@ -29,6 +30,7 @@ class Router
         private readonly AatisController $baseController,
         private readonly TemplateRendererInterface $templateRenderer,
         private readonly RequestStack $requestStack,
+        private readonly ?LoggerInterface $logger = null,
         private readonly string $notFoundErrorTemplate = '/errors/error.tpl.php',
         private readonly array $notFoundErrorVars = [],
     ) {
@@ -58,11 +60,6 @@ class Router
 
         if ($routeInfos) {
             $route = $routeInfos['route'];
-            $httpMethod = $request->server->get('REQUEST_METHOD');
-
-            if (!is_string($httpMethod)) {
-                throw new \LogicException('The request method is not defined');
-            }
 
             if (!empty($route->gethttpMethodsAllowed()) && !in_array($httpMethod, $route->gethttpMethodsAllowed())) {
                 throw new NotAllowedMethodException(sprintf('The method %s is not allowed for the route %s', $httpMethod, $route->getPath()));
@@ -78,9 +75,15 @@ class Router
             $controller = $this->container->get($namespace);
 
             $params = [];
+            $loggedParams = [];
             foreach ($route->getMethodParams() as $key => $type) {
                 if (isset($routeInfos['params'][$key])) {
-                    $params[] = $routeInfos['params'][$key];
+                    $value = $routeInfos['params'][$key];
+
+                    $params[] = $value;
+                    if ($this->logger) {
+                        $loggedParams[$key] = $value;
+                    }
 
                     continue;
                 }
@@ -108,16 +111,32 @@ class Router
                 try {
                     $params[] = $this->container->get($type);
                 } catch (\Exception) {
-                    throw new InvalidArgumentException(sprintf('The parameter %s of the function %s of %s controller is are not provided or can\'t be autowired', $key, $route->getMethodName(), $route->getController()));
+                    throw new InvalidArgumentException(sprintf('The parameter %s of the function %s of %s controller is not provided or can\'t be autowired', $key, $route->getMethodName(), $route->getController()));
                 }
             }
 
-            return $controller->{$route->getMethodName()}(...$params);
+            $response = $controller->{$route->getMethodName()}(...$params);
+
+            $this->logger?->info(sprintf(
+                '%s %s %s %s',
+                $response->getStatusCode(),
+                $httpMethod,
+                $requestUri,
+                empty($loggedParams) ? '' : (json_encode($loggedParams) ?: '{}'),
+            ));
+
+            return $response;
         }
 
-        if (isset($explodedUri[1]) && '' === $explodedUri[1]) {
-            return $this->baseController->home();
+        if (isset($explodedUri[1]) && '' === $explodedUri[1] && 'GET' === $httpMethod) {
+            $response = $this->baseController->home();
+
+            $this->logger?->info(sprintf('%s %s /', $response->getStatusCode(), $httpMethod));
+
+            return $response;
         }
+
+        $this->logger?->error(sprintf('404 %s %s', $httpMethod, $requestUri));
 
         try {
             return new Response($this->templateRenderer->render($this->notFoundErrorTemplate, $this->notFoundErrorVars), 404);

@@ -42,7 +42,8 @@ Aatis\Routing\Service\Router:
 >
 > - notFoundErrorTemplate (default: /errors/error.tpl.php) is the path to your custom template for the 404 error page.
 > - notFoundErrorVars (default: []) is an array of variables that you can use in your custom template. These variables will be pass to the vars parameter of the `TemplateRender`.
-> - These arguments are optional
+> 
+> These arguments are optional
 
 ### Basic usage
 
@@ -151,15 +152,15 @@ public function hello(Service $service, string $name, int $age, ServiceInterface
 You can also restrict the method of your route :
 
 ```php
-#[Route('/hello', method: ['POST', 'DELETE'])]
-public function hello(): void
+#[Route('/restricted', method: ['POST', 'DELETE'])]
+public function restricted(): void
 {
     // ...
 }
 ```
 
 > [!NOTE]
-> The method parameter is optional and set to empty by default
+> The method parameter is optional and set to empty by default (all methods are allowed)
 
 ### RequestStack
 
