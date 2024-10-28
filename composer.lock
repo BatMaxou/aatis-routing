@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "ed802d0300c943993e0603c4bae9af4f",
+    "content-hash": "17063bb32b279d15cc53e0ab05fe7ffd",
     "packages": [
         {
             "name": "aatis/dependency-injection",
@@ -51,21 +51,16 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/BatMaxou/aatis-http-foundation.git",
-                "reference": "0cfef2ca580756b4963baf4e91873336f72e8faf"
+                "reference": "bf8a7870e96bd4a3eea6ce27767229a81cdfb64e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/BatMaxou/aatis-http-foundation/zipball/0cfef2ca580756b4963baf4e91873336f72e8faf",
-                "reference": "0cfef2ca580756b4963baf4e91873336f72e8faf",
+                "url": "https://api.github.com/repos/BatMaxou/aatis-http-foundation/zipball/bf8a7870e96bd4a3eea6ce27767229a81cdfb64e",
+                "reference": "bf8a7870e96bd4a3eea6ce27767229a81cdfb64e",
                 "shasum": ""
             },
             "require": {
                 "php": ">=8.2"
-            },
-            "require-dev": {
-                "friendsofphp/php-cs-fixer": "^3.49",
-                "phpstan/phpstan": "^1.10",
-                "symfony/var-dumper": "^7.1"
             },
             "type": "library",
             "autoload": {
@@ -85,20 +80,20 @@
                 "issues": "https://github.com/BatMaxou/aatis-http-foundation/issues",
                 "source": "https://github.com/BatMaxou/aatis-http-foundation/tree/1.0.0"
             },
-            "time": "2024-10-28T11:04:12+00:00"
+            "time": "2024-10-28T11:54:47+00:00"
         },
         {
             "name": "aatis/template-renderer",
-            "version": "1.2.0",
+            "version": "1.2.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/BatMaxou/aatis-template-renderer.git",
-                "reference": "387481495147285996a79840909702a0ceb3f363"
+                "reference": "e817457060b8805c32b05fbfb2e6299c686921a5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/BatMaxou/aatis-template-renderer/zipball/387481495147285996a79840909702a0ceb3f363",
-                "reference": "387481495147285996a79840909702a0ceb3f363",
+                "url": "https://api.github.com/repos/BatMaxou/aatis-template-renderer/zipball/e817457060b8805c32b05fbfb2e6299c686921a5",
+                "reference": "e817457060b8805c32b05fbfb2e6299c686921a5",
                 "shasum": ""
             },
             "require": {
@@ -122,9 +117,9 @@
             "description": "Template renderer of Aatis",
             "support": {
                 "issues": "https://github.com/BatMaxou/aatis-template-renderer/issues",
-                "source": "https://github.com/BatMaxou/aatis-template-renderer/tree/1.2.0"
+                "source": "https://github.com/BatMaxou/aatis-template-renderer/tree/1.2.1"
             },
-            "time": "2024-10-08T19:10:20+00:00"
+            "time": "2024-10-28T11:51:26+00:00"
         },
         {
             "name": "psr/container",
@@ -2869,7 +2864,9 @@
     "stability-flags": [],
     "prefer-stable": false,
     "prefer-lowest": false,
-    "platform": [],
+    "platform": {
+        "php": ">=8.2"
+    },
     "platform-dev": [],
     "plugin-api-version": "2.6.0"
 }
