@@ -2,15 +2,15 @@
 
 namespace Aatis\Routing\Controller;
 
-use Aatis\HttpFoundation\Component\Response;
 use Aatis\DependencyInjection\Interface\ContainerInterface;
+use Aatis\HttpFoundation\Component\Response;
 use Aatis\TemplateRenderer\Interface\TemplateRendererInterface;
 
 abstract class AbstractController
 {
     public function __construct(
         protected readonly ContainerInterface $container,
-        protected readonly TemplateRendererInterface $templateRenderer
+        protected readonly TemplateRendererInterface $templateRenderer,
     ) {
     }
 

@@ -2,18 +2,18 @@
 
 namespace Aatis\Routing\Service;
 
-use Psr\Log\LoggerInterface;
-use Aatis\Routing\Attribute\Route;
+use Aatis\DependencyInjection\Component\Service;
+use Aatis\DependencyInjection\Interface\ContainerInterface;
+use Aatis\DependencyInjection\Service\ServiceInstanciator;
 use Aatis\HttpFoundation\Component\Request;
 use Aatis\HttpFoundation\Component\Response;
-use Aatis\DependencyInjection\Entity\Service;
+use Aatis\Routing\Attribute\Route;
 use Aatis\Routing\Controller\AatisController;
-use Aatis\Routing\Exception\NotValidRouteException;
 use Aatis\Routing\Exception\InvalidArgumentException;
 use Aatis\Routing\Exception\NotAllowedMethodException;
-use Aatis\DependencyInjection\Service\ServiceInstanciator;
-use Aatis\DependencyInjection\Interface\ContainerInterface;
+use Aatis\Routing\Exception\NotValidRouteException;
 use Aatis\TemplateRenderer\Interface\TemplateRendererInterface;
+use Psr\Log\LoggerInterface;
 
 class Router
 {
@@ -30,9 +30,9 @@ class Router
         private readonly AatisController $baseController,
         private readonly TemplateRendererInterface $templateRenderer,
         private readonly RequestStack $requestStack,
-        private readonly ?LoggerInterface $logger = null,
         private readonly string $notFoundErrorTemplate = '/errors/error.tpl.php',
         private readonly array $notFoundErrorVars = [],
+        private readonly ?LoggerInterface $logger = null,
     ) {
         /** @var Service[] */
         $controllerServices = $this->container->getByTag('controller', true);
