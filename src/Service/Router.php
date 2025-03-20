@@ -3,8 +3,9 @@
 namespace Aatis\Routing\Service;
 
 use Aatis\DependencyInjection\Component\Service;
-use Aatis\DependencyInjection\Interface\ContainerInterface;
+use Aatis\DependencyInjection\Enum\ServiceTagOption;
 use Aatis\DependencyInjection\Service\ServiceInstanciator;
+use Aatis\DependencyInjection\Service\ServiceTagBuilder;
 use Aatis\HttpFoundation\Component\Request;
 use Aatis\HttpFoundation\Component\Response;
 use Aatis\Routing\Attribute\Route;
@@ -12,7 +13,9 @@ use Aatis\Routing\Controller\AatisController;
 use Aatis\Routing\Exception\InvalidArgumentException;
 use Aatis\Routing\Exception\NotAllowedMethodException;
 use Aatis\Routing\Exception\NotValidRouteException;
+use Aatis\Routing\Interface\ControllerInterface;
 use Aatis\TemplateRenderer\Interface\TemplateRendererInterface;
+use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 
 class Router
@@ -28,16 +31,17 @@ class Router
     public function __construct(
         private readonly ContainerInterface $container,
         private readonly AatisController $baseController,
+        private readonly ServiceTagBuilder $serviceTagBuilder,
         private readonly TemplateRendererInterface $templateRenderer,
         private readonly RequestStack $requestStack,
         private readonly string $notFoundErrorTemplate = '/errors/error.tpl.php',
         private readonly array $notFoundErrorVars = [],
         private readonly ?LoggerInterface $logger = null,
     ) {
-        /** @var Service[] */
-        $controllerServices = $this->container->getByTag('controller', true);
-        foreach ($controllerServices as $controllerService) {
-            $this->extractRoutes($controllerService->getClass());
+        /** @var Service<ControllerInterface>[] */
+        $controllerServices = $this->container->get($this->serviceTagBuilder->buildFromInterface(ControllerInterface::class, [ServiceTagOption::SERVICE_TARGETED]));
+        foreach ($controllerServices as $service) {
+            $this->extractRoutes($service);
         }
     }
 
@@ -95,14 +99,14 @@ class Router
                 }
 
                 if (str_starts_with($key, '_')) {
-                    $params[] = $this->container->get(sprintf('APP%s', strtoupper($key)));
+                    $params[] = $this->container->get(sprintf('@%s', strtoupper($key)));
 
                     continue;
                 }
 
                 if (interface_exists($type)) {
-                    /** @var Service[] */
-                    $services = $this->container->getByInterface($type, true);
+                    /** @var Service<object>[] */
+                    $services = $this->container->get($this->serviceTagBuilder->buildFromInterface($type, [ServiceTagOption::SERVICE_TARGETED]));
                     $params[] = $this->chooseService($services);
 
                     continue;
@@ -146,11 +150,11 @@ class Router
     }
 
     /**
-     * @param class-string $controller
+     * @param Service<ControllerInterface> $controller
      */
-    private function extractRoutes(string $controller): void
+    private function extractRoutes(Service $controller): void
     {
-        $reflection = new \ReflectionClass($controller);
+        $reflection = $controller->getReflexion();
         $methods = $reflection->getMethods();
 
         foreach ($methods as $method) {
@@ -168,7 +172,7 @@ class Router
                 $args = $attribute->getArguments();
 
                 if (empty($args)) {
-                    throw new NotValidRouteException(sprintf('The function %s of %s controller isn\'t linked to a route', $method->getName(), $controller));
+                    throw new NotValidRouteException(sprintf('The function %s of %s controller isn\'t linked to a route', $method->getName(), $controller->getClass()));
                 }
 
                 foreach ($this->routes as $route) {
@@ -178,7 +182,7 @@ class Router
                 }
 
                 $this->routes[] = (new Route(...$args))
-                    ->setController($controller)
+                    ->setController($controller->getClass())
                     ->setMethodName($method->getName())
                     ->setMethodParams($params);
             }
@@ -263,7 +267,11 @@ class Router
     }
 
     /**
-     * @param Service[] $services
+     * @template T of object
+     *
+     * @param Service<T>[] $services
+     *
+     * @return T
      */
     private function chooseService(array $services): object
     {

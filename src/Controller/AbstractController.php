@@ -2,11 +2,12 @@
 
 namespace Aatis\Routing\Controller;
 
-use Aatis\DependencyInjection\Interface\ContainerInterface;
 use Aatis\HttpFoundation\Component\Response;
+use Aatis\Routing\Interface\ControllerInterface;
 use Aatis\TemplateRenderer\Interface\TemplateRendererInterface;
+use Psr\Container\ContainerInterface;
 
-abstract class AbstractController
+abstract class AbstractController implements ControllerInterface
 {
     public function __construct(
         protected readonly ContainerInterface $container,
