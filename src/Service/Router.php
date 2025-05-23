@@ -4,7 +4,7 @@ namespace Aatis\Routing\Service;
 
 use Aatis\DependencyInjection\Component\Service;
 use Aatis\DependencyInjection\Enum\ServiceTagOption;
-use Aatis\DependencyInjection\Service\ServiceInstanciator;
+use Aatis\DependencyInjection\Interface\ServiceInstanciatorInterface;
 use Aatis\DependencyInjection\Service\ServiceTagBuilder;
 use Aatis\HttpFoundation\Component\Request;
 use Aatis\HttpFoundation\Component\Response;
@@ -289,9 +289,13 @@ class Router
             return $choosenService;
         }
 
-        /** @var ServiceInstanciator */
-        $serviceInstanciator = $this->container->get(ServiceInstanciator::class);
+        /** @var ServiceInstanciatorInterface[] */
+        $serviceInstanciators = $this->container->get($this->serviceTagBuilder->buildFromInterface(ServiceInstanciatorInterface::class));
 
-        return $serviceInstanciator->instanciate($services[0]);
+        if (empty($serviceInstanciators)) {
+            throw new \LogicException(sprintf('Any service instanciator found'));
+        }
+
+        return $serviceInstanciators[0]->instanciate($services[0]);
     }
 }
